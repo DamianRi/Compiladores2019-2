@@ -347,7 +347,12 @@ int main() {
       } 
     }    
   };
-
+  if (token == "$") {
+    printf("Cadena Aceptada");
+  }else{
+    printf("Cadena Rechazada");
+  }
+  return 0;
   
   /*
 

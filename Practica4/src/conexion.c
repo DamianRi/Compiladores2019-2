@@ -7,6 +7,8 @@
 extern int yylex();
 extern char *yytext;
 
+int matriz[NUM_NON_TERM][NUM_TERM];
+
 
 /**
  * @brief  Función que agrega un elemento en el tope de la pila.
@@ -136,19 +138,19 @@ void configuracion(){
   simbolos[14] = CP;
   simbolos[15] = D;
   simbolos[16] = epsilon;
-
-  Prod p0 = {head:9 ,body:"11/10", num:2};  //A->BAP
-  Prod p1 = {head:10 ,body:"6/9", num:2};   //AP->orA
+  //Las producciones están inversas para meterlas directo a la pila
+  Prod p0 = {head:9 ,body:"10/11", num:2};  //A->BAP
+  Prod p1 = {head:10 ,body:"9/6", num:2};   //AP->orA
   Prod p2 = {head:10 ,body:"16", num:1};    //AP->epsilon
-  Prod p3 = {head:11 ,body:"13/12", num:2}; //B->CBP
+  Prod p3 = {head:11 ,body:"12/13", num:2}; //B->CBP
   Prod p4 = {head:12 ,body:"11", num:1};    //BP->B
   Prod p5 = {head:12 ,body:"16", num:1};    //BP->epsilon
-  Prod p6 = {head:13 ,body:"15/14", num:2}; //C->DCP
-  Prod p7 = {head:14 ,body:"2/14", num:2};  //CP->+CP
-  Prod p8 = {head:14 ,body:"3/14", num:2};  //CP->*CP
-  Prod p9 = {head:14 ,body:"4/14", num:2};  //CP->?CP
+  Prod p6 = {head:13 ,body:"14/15", num:2}; //C->DCP
+  Prod p7 = {head:14 ,body:"14/2", num:2};  //CP->+CP
+  Prod p8 = {head:14 ,body:"14/3", num:2};  //CP->*CP
+  Prod p9 = {head:14 ,body:"14/4", num:2};  //CP->?CP
   Prod p10 = {head:14 ,body:"16", num:1};   //CP-> epsilon
-  Prod p11 = {head:15 ,body:"5/9/7", num:3};//D->(A)
+  Prod p11 = {head:15 ,body:"7/9/5", num:3};//D->(A)
   Prod p12 = {head:15 ,body:"0", num:1};    //D->a
   Prod p13 = {head:15 ,body:"1", num:1};    //D->b
 
@@ -168,7 +170,6 @@ void configuracion(){
   producciones[12] = p12; //D->a
   producciones[13] = p13; //D->b
 
-  int matriz[NUM_NON_TERM][NUM_TERM];
   //Renglon A
   matriz[0][0] = 0;
   matriz[0][1] = 0;   
@@ -245,7 +246,6 @@ void configuracion(){
 
 int main() {
   /*
-  Stack pila = {root:0, num: 0};
   Sym sym = {type:1, name:"a", pos:0};
   Sym sym2 = {type:2, name: "A", pos:1};
   Sym sym3 = {type:3, name: "epsilon", pos:2};
@@ -266,26 +266,97 @@ int main() {
 
 
 
-  while(yylex() != 0) {
     //primera forma
     /*
     char *token1 = strdup(yytext);
     printf("token1 value: %s\n", token1);
     free(token1);
     */
-    
     //segunda forma
-    int indice = 0;
-    char *token2 = malloc(sizeof(yytext));    
-    strcpy(token2, yytext);
-    if(*token2 == 'a'){
+    
+  Stack pila = {root:0, num: 0};//Pila con la que trabajaremos
+  char *token = malloc(sizeof(yytext));    
+  strcpy(token, yytext);//cargamos el token en la variable
+  int indice = 0;//índice del token
+  int indPro = 0;
+
+  const char separador[] = "/";
+  char *noTerm:
+  push(&pila, simbolos[8]);//simbolo fin de archivo $
+  push(&pila, simbolos[9]);//Símbolo inicial
+
+  while(tope(&pila).info.name !=  "$") {//Mientras que la pila no sea $
+    if (token == "a") {
+      indice = 0;
+    }else if (token == "b")
+    {
+      indice = 1;
+    }else if (token == "+")
+    {
+      indice = 2;
+    }else if (token == "*")
+    {
+      indice = 3;
+    }else if (token == "?")
+    {
+      indice = 4;
+    }else if (token == "(")
+    {
+      indice = 5;
+    }else if (token == "or")
+    {
+      indice = 6;
+    }else if (token == ")")
+    {
+      indice = 7;
+    }
+  
+    Node topep = tope(&pila);
+    if(topep.info.type == 1){//Si el tope es terminal
+      if (topep.info.name == token) {
+        pop(&pila);
+        *token = malloc(sizeof(yytext));//Leemos el siguiente token
+        strcpy(token, yytext);
+      }else{
+        printf("Error de cadena");
+        return 0;
+      }
+    }else{//Si el tope no es terminal
+      indPro = matriz[topep.info.pos, indice];
+      
+      if(indPro != -1){
+        Prod actual = producciones[indPro];
+
+        //Si hay no terminales que aceptan epsilon
+        if (actual.body == "16") {
+          pop(&pila);
+        
+        }else{
+          pop(&pila);
+
+          token = strtok(actual.body, separador);
+          while(token != NULL){//agregamos los indices del cuerpo de la produccion
+            push(&pila, simbolos[(int)token]);
+            token = strtok(NULL, separador);
+          }
+          
+        }
+      }else{
+        printf("Error de cadena");
+        return 0;
+      } 
+    }    
+  };
+
+  
+  /*
+
+    if(*token == 'a'){
       printf("a");
       indice = 0;
       printf("Indice %d", indice);
     }
-    printf("token2 value: %s\n", token2);
+    printf("token value: %s\n", token2);
     free(token2);
-  };
-  /*
   */
 } 

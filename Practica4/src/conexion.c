@@ -6,6 +6,7 @@
 #define NUM_TERM 9
 extern int yylex();
 extern char *yytext;
+extern FILE* yyin;
 
 
 
@@ -97,7 +98,14 @@ void infoStack(Stack * stack){
 }
 
 
-int main() {
+int main(int argc, char* argv[]) {
+
+  if (argc < 2)
+  {
+    printf(" USO:\n ./practica <archivo> \n donde <archivo> es un archivo de texto\n");
+    return 0;
+  }
+  
 
   int matriz[NUM_NON_TERM][NUM_TERM];//creando la matriz para tabla de análisis
   Sym simbolos[17];//arreglo de símbolos
@@ -108,7 +116,7 @@ int main() {
   Sym term_est = {type:1, name: "*", pos:3};
   Sym term_opc = {type:1, name: "?", pos:4};
   Sym term_parizq = {type:1, name: "(", pos:5};
-  Sym term_or = {type:1, name:"or", pos:6};
+  Sym term_or = {type:1, name:"|", pos:6};
   Sym term_parder = {type:1, name: ")", pos:7};
   Sym term_fin = {type:1, name: "$", pos:8};
   Sym epsilon = {type: 3, name:"epsilon", pos:9};
@@ -242,6 +250,10 @@ int main() {
 
   printf("Todas las variables cargadas\n");
 
+  FILE *f;
+  f = fopen(argv[1], "r");
+  yyin = f;
+
   Stack pila = {root:0, num: 0};//Pila con la que trabajaremos
 
   while(yylex() != 0) {
@@ -254,12 +266,10 @@ int main() {
 
     push(&pila, simbolos[8]);//ingresamos a la pila el simbolo fin de archivo $
     push(&pila, simbolos[9]);//ingresamos a la pila el Símbolo inicial A
-    int x = 0;
-    //Verificamos si la cadena ingresada es correcta 
-    while(tope(&pila)->info.name !=  term_fin.name &&  x < 10) {//Mientras que la pila no esté vacía, que no sea $
-      x ++;
-      printf("Tope %s\n", tope(&pila)->info.name);
-      printf("Token actual %s\n", token);
+
+    //Verificamos si la cadena ingresada es correcta
+    while(tope(&pila)->info.name !=  term_fin.name) {//Mientras que la pila no esté vacía, que no sea $
+      printf("TOKEN ACTUAL %s\n", token);
 
       //Obtenemos el indice que corresponde al token obtenido de yytext
       if (strcmp(token, term_a.name) == 0) {//Caso en que sea 'a'
@@ -278,6 +288,8 @@ int main() {
         indice = 6;
       }else if (strcmp(token, term_parder.name) == 0){//caso en que sea ')'
         indice = 7;
+      }else if (strcmp(token, term_fin.name) == 0){//caso en que sea ')'
+        indice = 8;
       }      
       /*
       */
@@ -290,46 +302,51 @@ int main() {
         //Verificamos si el tope y el token son ambos $ fin de archivos
         char *findearchivo = "$";
         if(strcmp(topep.info.name, token) == 0 && strcmp(topep.info.name, findearchivo) == 0){
-          printf("CADENA ACEPTADA");
-          return 0;
-        }
+          printf("\n >>>> CADENA ACEPTADA <<<< \n");
+
+          memset(token, 0, 15);//borramos token actual
+          yylex();//Avanzamos al siguiente token
+          strcpy(token, yytext);//leemos el siguiente token
+
+          //VERIFICAMOS SI YA SE TERMINÓ DE LEER EL ARCHIVO
+          if (strcmp(token, "") == 0)
+          {
+            printf("\n --- FIN DE ARCHIVO ---\n");
+            return 0;
+          }
+          push(&pila, simbolos[9]);//Si no es fin de archivo reiniciamos el tope de la pila
+          
+
+        }else
 
         //Comparamos el valor del tope de la pila con el token actual
         if (strcmp(topep.info.name, token) == 0) {
-          printf(" Hace Match con el token actual %s\n", token);
+          printf(" - - MATCH TOPE %s - TOKEN %s\n",topep.info.name, token);
           pop(&pila);
           
           memset(token, 0, 15);//borramos token actual
+          yylex();//Avanzamos al siguiente token
           strcpy(token, yytext);//leemos el siguiente token
+          printf("SIGUIENTE TOKEN %s", token);
         }else{
-          printf("Error de cadena\n");
+          printf(" X - Error de cadena - X\n");
           return 0;
         }
       }else{//Si el tope no es terminal
         printf("Tope %s no es terminal.\n", topep.info.name);
         indPro = matriz[topep.info.pos][indice];
-      
-
-        /** 
-         * HACE FALTA REVISAR SI LAS PRODUCCIONES SON CORRECTAS
-         * EN ESPECIFICO LA P4 : SI BP CON A -> B 
-         * 
-         * 
-         * 
-         * 
-        */
 
         if(indPro != -1){//Verificamos si existe la produccion en la tabla. 
 
-          printf("Hay una producción con los símbolos\n");
+          //printf("Hay una producción con los símbolos\n");
           Prod actual = producciones[indPro];
           char separador[] = "/";
-          printf("Producción siguiente %s\n", actual.body);
+          printf("\nProducción siguiente %s\n", actual.body);
           char *final = "16";
 
           //Si hay no_terminales que aceptan epsilon
           if (strcmp(actual.body, final) == 0) {
-            pop(&pila);
+            pop(&pila);//Hacemos pop de los no terminales
 
           }else{
             printf("Hacemos pop a la pila\n");
@@ -339,6 +356,7 @@ int main() {
             strcpy(str, actual.body); //cargamos la cadena de la produccion por la que se cambia
             char *token2;
             token2 = strtok(str, separador);
+
             //metemos todos los simbolos de la cadena
             while( token2 != NULL ) {
               push(&pila, simbolos[atoi(token2)]);
@@ -347,7 +365,7 @@ int main() {
             memset(str, 0, 10);         
           }
         }else{
-          printf("Error de cadena\n");
+          printf(" X - Error de cadena - X\n");
           return 0;
         } 
       }
@@ -355,5 +373,7 @@ int main() {
 
     memset(token, 0, 15);
   };//fin while yytext
+  printf("\n <<<< CADENA RECHAZADA >>>>\n");
+  fclose(yyin);
   return 0;
 } 

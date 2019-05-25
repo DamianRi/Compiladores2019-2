@@ -16,16 +16,13 @@ identificador [a-zA-Z_][a-zA-Z0-9_]{0,31}
 "*" {printf("Ast *"); return 4;}
 "?" {printf("Opc ?"); return 5;}
 "(" {printf("Pariz ("); return 6;}
-"or" {printf("Or or"); return 7;}
+"|" {printf("Or or"); return 7;}
 ")" {printf("Parde )"); return 8;}
 "$" {printf("Fin $"); return 9;}
 
 " " {/*Ignorar Espacios*/}
-
-%%
-/*
-{digito} {return yytext;}
-{identificador} {return yytext;} //<<EOF>> {return 0;}  regresar indices de los no terminales del arreglo de simbolos
+"\n" {printf("Salto de Linea"); return 0;}
+<<EOF>> {printf("Fin de archivo"); return 0;}
 . {printf("No reconocido, termina ejecución.\n"); return 0;}
 
-*/
+%%

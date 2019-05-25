@@ -1,6 +1,6 @@
-#PRÁCTICA 4
+# PRÁCTICA 4
 
-###Contenido
+### Contenido
 
 Dentro de la carpeta `src` se encuentran los archivos para ejecutar
 

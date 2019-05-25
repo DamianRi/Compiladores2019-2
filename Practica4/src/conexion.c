@@ -7,7 +7,6 @@
 extern int yylex();
 extern char *yytext;
 
-int matriz[NUM_NON_TERM][NUM_TERM];
 
 
 /**
@@ -33,7 +32,7 @@ void push(Stack *stack, Sym symbol){
     iterador -> next = tope;
   }
   stack -> num = stack -> num+1;
-  printf("Push a la Pila.\n");
+  printf("Push a la Pila: %s \n", symbol.name);
 
 }
 
@@ -43,6 +42,8 @@ void push(Stack *stack, Sym symbol){
   * @retval None
  */
 void pop(Stack *stack){
+    Node * iterador = stack -> root -> next;
+    Node * penultimo = stack -> root;
 
   if(stack -> num == 0){
     printf("No hay elementos en la pila.\n");
@@ -51,8 +52,6 @@ void pop(Stack *stack){
     if (!stack -> root -> next){
       stack -> root = 0;
     }else{
-      Node * iterador = stack -> root -> next;
-      Node * penultimo = stack -> root;
       //Vamos al tope de la pila
       while (iterador -> next){
         iterador = iterador -> next;
@@ -61,7 +60,8 @@ void pop(Stack *stack){
       penultimo -> next = 0;
     }
     stack -> num = stack -> num-1;
-    printf("Pop a la Pila.\n");
+    
+    printf("Pop a la Pila: %s\n", iterador ->info.name );
   }
 
 }
@@ -94,13 +94,14 @@ void infoStack(Stack * stack){
   {
     printf("Root: NULL\nNum: 0\nTope: NULL\n");
   }
-  
-
-  
 }
 
 
-void configuracion(){
+int main() {
+
+  int matriz[NUM_NON_TERM][NUM_TERM];//creando la matriz para tabla de análisis
+  Sym simbolos[17];//arreglo de símbolos
+  Prod producciones[14];// arreglo de producciones
   Sym term_a = {type:1, name:"a", pos:0};
   Sym term_b = {type:1, name:"b", pos:1};
   Sym term_mas = {type:1, name: "+", pos:2};
@@ -120,7 +121,6 @@ void configuracion(){
   Sym CP = {type: 2, name:"CP", pos:5};
   Sym D = {type: 2, name:"D", pos:6};
   
-  Sym simbolos[17];
   simbolos[0] = term_a;
   simbolos[1] = term_b;
   simbolos[2] = term_mas;
@@ -154,7 +154,6 @@ void configuracion(){
   Prod p12 = {head:15 ,body:"0", num:1};    //D->a
   Prod p13 = {head:15 ,body:"1", num:1};    //D->b
 
-  Prod producciones[14];
   producciones[0] = p0; //A->BAP
   producciones[1] = p1; //AP->orA
   producciones[2] = p2; //AP->epsilon
@@ -241,127 +240,120 @@ void configuracion(){
   matriz[6][7] = -1;
   matriz[6][8] = -1;
 
+  printf("Todas las variables cargadas\n");
 
-}
-
-int main() {
-  /*
-  Sym sym = {type:1, name:"a", pos:0};
-  Sym sym2 = {type:2, name: "A", pos:1};
-  Sym sym3 = {type:3, name: "epsilon", pos:2};
-  push(&pila, sym);
-  push(&pila, sym2);
-  push(&pila, sym3);
-  infoStack(&pila);
-  pop(&pila);
-  infoStack(&pila);
-  pop(&pila);
-  infoStack(&pila);
-  push(&pila, sym3);
-  infoStack(&pila);
-  pop(&pila);
-  pop(&pila);
-  infoStack(&pila);
-  */
-
-
-
-    //primera forma
-    /*
-    char *token1 = strdup(yytext);
-    printf("token1 value: %s\n", token1);
-    free(token1);
-    */
-    //segunda forma
-    
   Stack pila = {root:0, num: 0};//Pila con la que trabajaremos
-  char *token = malloc(sizeof(yytext));    
-  strcpy(token, yytext);//cargamos el token en la variable
-  int indice = 0;//índice del token
-  int indPro = 0;
 
-  const char separador[] = "/";
-  char *noTerm:
-  push(&pila, simbolos[8]);//simbolo fin de archivo $
-  push(&pila, simbolos[9]);//Símbolo inicial
+  while(yylex() != 0) {
+    //Obtenemos el token actual
+    char *token = (char*)malloc(15);    
+    strcpy(token, yytext);
 
-  while(tope(&pila).info.name !=  "$") {//Mientras que la pila no sea $
-    if (token == "a") {
-      indice = 0;
-    }else if (token == "b")
-    {
-      indice = 1;
-    }else if (token == "+")
-    {
-      indice = 2;
-    }else if (token == "*")
-    {
-      indice = 3;
-    }else if (token == "?")
-    {
-      indice = 4;
-    }else if (token == "(")
-    {
-      indice = 5;
-    }else if (token == "or")
-    {
-      indice = 6;
-    }else if (token == ")")
-    {
-      indice = 7;
-    }
-  
-    Node topep = tope(&pila);
-    if(topep.info.type == 1){//Si el tope es terminal
-      if (topep.info.name == token) {
-        pop(&pila);
-        *token = malloc(sizeof(yytext));//Leemos el siguiente token
-        strcpy(token, yytext);
-      }else{
-        printf("Error de cadena");
-        return 0;
-      }
-    }else{//Si el tope no es terminal
-      indPro = matriz[topep.info.pos, indice];
-      
-      if(indPro != -1){
-        Prod actual = producciones[indPro];
+    int indice = 0;//índice del token
+    int indPro = 0;//índice de la producción
 
-        //Si hay no terminales que aceptan epsilon
-        if (actual.body == "16") {
-          pop(&pila);
+    push(&pila, simbolos[8]);//ingresamos a la pila el simbolo fin de archivo $
+    push(&pila, simbolos[9]);//ingresamos a la pila el Símbolo inicial A
+    int x = 0;
+    //Verificamos si la cadena ingresada es correcta 
+    while(tope(&pila)->info.name !=  term_fin.name &&  x < 10) {//Mientras que la pila no esté vacía, que no sea $
+      x ++;
+      printf("Tope %s\n", tope(&pila)->info.name);
+      printf("Token actual %s\n", token);
+
+      //Obtenemos el indice que corresponde al token obtenido de yytext
+      if (strcmp(token, term_a.name) == 0) {//Caso en que sea 'a'
+        indice = 0;
+      }else if (strcmp(token, term_b.name) == 0){//caso en que sea 'b'
+        indice = 1;
+      }else if (strcmp(token,term_mas.name) == 0){//caso en que sea '+'
+        indice = 2;
+      }else if (strcmp(token,term_est.name) == 0){//caso en que sea '*'
+        indice = 3;
+      }else if (strcmp(token, term_opc.name) == 0){//caso en que sea '?'
+        indice = 4;
+      }else if (strcmp(token, term_parizq.name) == 0){//caso en que sea '('
+        indice = 5;
+      }else if (strcmp(token, term_or.name) == 0){//caso en que sea 'or'
+        indice = 6;
+      }else if (strcmp(token, term_parder.name) == 0){//caso en que sea ')'
+        indice = 7;
+      }      
+      /*
+      */
+      Node topep = *tope(&pila);//Obtenemos el tope de la pila
+      if(topep.info.type == 1){//Si el tope es terminal
         
-        }else{
-          pop(&pila);
+        printf("Tope %s es terminal.\n", topep.info.name);
+        printf("Comparamos : %s con %s\n", topep.info.name, token);
 
-          token = strtok(actual.body, separador);
-          while(token != NULL){//agregamos los indices del cuerpo de la produccion
-            push(&pila, simbolos[(int)token]);
-            token = strtok(NULL, separador);
-          }
-          
+        //Verificamos si el tope y el token son ambos $ fin de archivos
+        char *findearchivo = "$";
+        if(strcmp(topep.info.name, token) == 0 && strcmp(topep.info.name, findearchivo) == 0){
+          printf("CADENA ACEPTADA");
+          return 0;
         }
-      }else{
-        printf("Error de cadena");
-        return 0;
-      } 
-    }    
-  };
-  if (token == "$") {
-    printf("Cadena Aceptada");
-  }else{
-    printf("Cadena Rechazada");
-  }
-  return 0;
-  
-  /*
 
-    if(*token == 'a'){
-      printf("a");
-      indice = 0;
-      printf("Indice %d", indice);
-    }
-    printf("token value: %s\n", token2);
-    free(token2);
-  */
+        //Comparamos el valor del tope de la pila con el token actual
+        if (strcmp(topep.info.name, token) == 0) {
+          printf(" Hace Match con el token actual %s\n", token);
+          pop(&pila);
+          
+          memset(token, 0, 15);//borramos token actual
+          strcpy(token, yytext);//leemos el siguiente token
+        }else{
+          printf("Error de cadena\n");
+          return 0;
+        }
+      }else{//Si el tope no es terminal
+        printf("Tope %s no es terminal.\n", topep.info.name);
+        indPro = matriz[topep.info.pos][indice];
+      
+
+        /** 
+         * HACE FALTA REVISAR SI LAS PRODUCCIONES SON CORRECTAS
+         * EN ESPECIFICO LA P4 : SI BP CON A -> B 
+         * 
+         * 
+         * 
+         * 
+        */
+
+        if(indPro != -1){//Verificamos si existe la produccion en la tabla. 
+
+          printf("Hay una producción con los símbolos\n");
+          Prod actual = producciones[indPro];
+          char separador[] = "/";
+          printf("Producción siguiente %s\n", actual.body);
+          char *final = "16";
+
+          //Si hay no_terminales que aceptan epsilon
+          if (strcmp(actual.body, final) == 0) {
+            pop(&pila);
+
+          }else{
+            printf("Hacemos pop a la pila\n");
+            pop(&pila);
+
+            char str[10];
+            strcpy(str, actual.body); //cargamos la cadena de la produccion por la que se cambia
+            char *token2;
+            token2 = strtok(str, separador);
+            //metemos todos los simbolos de la cadena
+            while( token2 != NULL ) {
+              push(&pila, simbolos[atoi(token2)]);
+              token2 = strtok(NULL, separador);
+            }
+            memset(str, 0, 10);         
+          }
+        }else{
+          printf("Error de cadena\n");
+          return 0;
+        } 
+      }
+    }//fin while sobre la pila
+
+    memset(token, 0, 15);
+  };//fin while yytext
+  return 0;
 } 

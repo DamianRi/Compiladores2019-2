@@ -1,0 +1,27 @@
+programa -> declaraciones funciones
+declaraciones -> tipo lista ; | Epsilon
+tipo -> entero | flotante | doble | letra | vacio | estructura { declaraciones }
+lista -> lista , id arreglo | id arreglo
+arreglo -> [ numero ] arreglo | Epsilon
+funciones -> func tipo id (argumentos){ declaraciones  sentencias} funciones | Epsilon
+argumentos -> lista_argumentos | Epsilon
+lista_argumentos -> lista_argumentos, tipo id parte_arreglo | tipo id parte_arreglo
+parte_arreglo -> [] parte_arreglo | Epsilon
+sentencia -> sentencias sentencias | siesto (condicion) sentencia | siesto (condicion) sentencias ent sentencia
+            | mientras(condicion) sentencia | hacer sentencia mientras(condicion); |for(sentencia; condicion; sentencia) sentencia
+            | parte_izquierda = expresion; | regresa expresion; | regresa {sentencia} | cambia (expresion){casos predeterminado}
+            | rompe; | imprime expresion;
+casos -> caso: numero sentencia predeterminado | Epsilon
+predeterminado -> pordefecto: sentencia | Epsilon
+parte_izquierda -> id | var_arreglo | id.id
+var_arreglo -> id[expresion] | var_arreglo[expresion]
+expresion -> expresion + expresion | expresion - expresion | expresion * expresion
+            |expresion / expresion | expresion % expresion | var_arreglo | cadena
+            | numero | caracter | id(parametros)
+
+parametros -> Epsilon | lista_param
+lista_param -> lista_param, expresion | expresion
+condicion -> condicion or condicion | condicion and condicion | ! condicion |(condicion)
+            |expresion relacional expresion | verdadero | falso
+
+relacional -> < | > | >= | <= | diff | ==

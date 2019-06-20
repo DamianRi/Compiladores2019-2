@@ -1,0 +1,89 @@
+3.************** 
+(a). ¿Qué ocurre cuando se invoca el comando cpp con esos argumentos?
+Se genera una estructura del código fuente en C y lo guarda en el archivo 'programa.i'.
+Incluye todas las biblotecas necesarias para que pueda funcionar el programa, define direfentes tipos y estructuras del
+mismo código.
+
+(b). ¿Qué similitudes encuentra entre los archivos programa.c y programa.i? 
+Se encuentra en la parte final del archivo programa.i el mismo código fuente pero realiza la susitución de las macros dentro de
+la función principal y elimina todos los comentarios.
+
+(c). ¿Qué pasa con las macros y los comentarios del código fuente original en programa.i?
+las macros son sustituidas a sus valores definidos y los comentarios se eliminan. 
+
+(d). Compare el contenido del programa.i con el de stdio.h e indique de forma general las similitudes entre ambos archivos.
+Que todo está definido mediante typedef y extern.
+
+(e). ¿Aqué etapa corresponde este proceso?
+Al preprosesamiento del código fuente.
+
+4.**************
+(a). ¿para qué sirve la opción -Wall?
+Habilita el despliegue de todas las advertencias sobre malas prácticas de progrmación que son "fáciles" de corregir.
+
+(b). ¿Qué le indica a gcc la opción -S?
+Evita que el enlazador trabaje.
+
+(c). ¿Qué contiene el archivo de salida y cuál es su extensión?
+Extensión '.s', código en lenguaje ensamblador.
+
+(d). ¿A qué etapa corresponde este comando?
+La estapa de Ensamblador 
+
+5.*********************
+(a). Antes de revisarlo, indique cuál es su hipótesis sobre lo que debe contener el archivo con extenisón .o
+Contiene código objeto del código en ensamblador del archivo programa.s
+
+(b). Diga de forma general qué contiene el archivo programa.o y por qué se visualiza de esa manera.
+Contiene código en lenguaje de máquina y se ve de esa manera debido a que la información únicamente la entiende el hadware de 
+la computadora.
+
+(c). ¿Qué programa se invoca con as ? 
+El programa ensamblador debido a que con la instrucción anterior que tenía como parámetro "-S" evitamos que el programa 
+se ejecutará.
+
+(d). ¿A qué etapa corresponde la llamada a este programa?
+A la útlima Ensamblador/Cargador
+
+6. ********************
+Rutas
+
+Scrt1: /usr/lib/x86_64-linux-gnu/Scrt1.o
+crti: /usr/lib/x86_64-linux-gnu/crti.o
+crtbeginS.o:
+crtendS.o: 
+crtn: /usr/lib/x86_64-linux-gnu/crtn.o
+
+7. ***********************
+Propuesta: 
+	ld -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie /usr/lib/x86_64-linux-gnu/Scrt1.o /usr/lib/x86_64-linux-gnu/crti.o -L /usr/lib/gcc/x86_64-pc-linux-gnu/7.3.0 -L /usr/lib -L/lib -L /usr/lib -L /usr/lib programa.o --as-needed --no-as-needed -lc --as-needed --no-as-needed /usr/lib/x86_64-linux-gnu/crtn.o -o ejecutable	 
+
+(b) En caso de ser exitoso ¿Qué se genero el ajecutar el comando anterior ?
+Se genera un archvo ejecutable con el nombre "ejecutable".
+
+(c). Describa qué ocurre si omitimos alguno de los archivos con terminación .o en el comando.
+Si quitamos el archivo crtn.o:
+	Muesta un mensaje "Violación de segmento 'core' generado)"
+Si quitamos el archivo programa.o:
+	No se define la función 'main'.
+Si quitamos el archivo crti.o:
+	No se define la referencia a _init 
+Si quitamos el archivo Scrt1.o:
+	el comando 'ld' no ecuentra el sismbolo de entrada _start.
+
+Si no agrego las rutas de los archivos crtbeginS.o y crtendS.o no genera ningun mensaje de algún tipo
+y el ejecutable se puede usar de manera correcta.
+
+8. **********************
+(a). ¿Al ejecutar el comando del rubro 3. cambia en algo la salida alojada en programa.i?
+Sí, se lleva una sustitución del valor definido como PI con sus 12 dígitos luego del punto decimal ya que
+el valor original de PI por defecto se toma solo con 4 dígitos luego del punto decimal.
+
+(b). ¿Cambia en algo la ejecución final ?
+Sí.
+
+9. Escriba sus resultados al ejecutar el programa compilado y sus conclusiones personales.
+Para el 'ejecutable' (código fuente con la definición de PI comentada) el resultado es  - 28.274401 -
+mientras que el 'ejecutable_v2' (código fuente sin la definición de PI comentada) el resultado es - 28.274334 -
+hay una pequeña diferencia en la exactitud de los decimales.
+Debido a que en el código fuente del 'ejecutable_v2' se define un valor más exacto para la constante PI, en el proceso de traducción del código se trabajará con más decimales con lo cual el valor obtenido es más exacto, por ello el resultado es diferente.
